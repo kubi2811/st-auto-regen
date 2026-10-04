@@ -1,0 +1,17 @@
+#autoregen_panel .autoregen-content {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+}
+#autoregen_panel .autoregen-content input[type="range"] {
+    width: 100%;
+}
+#autoregen_panel .autoregen-hint {
+    opacity: 0.7;
+    margin-bottom: 6px;
+    display: block;
+}
+#autoregen_panel .autoregen-status {
+    margin-top: 6px;
+    font-size: 0.9em;
+}

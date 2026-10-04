@@ -1,0 +1,12 @@
+{
+    "display_name": "Auto-Regenerate on API Hang",
+    "loading_order": 1000,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "kubi2811",
+    "version": "1.0.0",
+    "homePage": "https://github.com/kubi2811/st-auto-regen",
+    "auto_update": true
+}
