@@ -1,15 +1,35 @@
-#autoregen_panel .autoregen-content {
-    display: none;
-    flex-direction: column;
-    gap: 4px;
-}
 #autoregen_panel .autoregen-content input[type="range"] {
     width: 100%;
+}
+#autoregen_panel h4 {
+    margin: 10px 0 4px;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #555);
+    padding-bottom: 2px;
+}
+#autoregen_panel .autoregen-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+#autoregen_panel .autoregen-lang {
+    width: auto;
+    padding: 2px 10px;
 }
 #autoregen_panel .autoregen-hint {
     opacity: 0.7;
     margin-bottom: 6px;
     display: block;
+}
+#autoregen_panel .autoregen-log {
+    max-height: 220px;
+    overflow: auto;
+    font-size: 0.8em;
+    white-space: pre-wrap;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 6px;
+    border-radius: 6px;
 }
 #autoregen_panel .autoregen-status {
     margin-top: 6px;
