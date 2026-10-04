@@ -8,8 +8,8 @@ A SillyTavern extension that automatically stops and regenerates a reply when th
 
 - **No text after N seconds** (default 200 s, stuck in "thinking") → stops the generation and regenerates.
 - **Stream stalls for N seconds** mid-reply (default 90 s) → stops and regenerates. Only counts once text is already streaming, so long replies that keep flowing are never cut.
-- **Max retries per turn** (default 2), then it gives up and shows a notice — no infinite loops, no burned quota.
-- **Empty / too-short / truncated reply** after generation ends (shorter than N characters, or missing a required text such as `</content>`) → regenerates, up to N times. Replies containing `<UpdateVariable>` (MVU) are always skipped.
+- **Max retries per turn** (default 50, no upper limit), then it gives up and shows a notice instead of looping forever.
+- **Empty / too-short / truncated reply** after generation ends (shorter than N characters, or missing a required text such as `</content>`) → regenerates, up to N times (default 50, no upper limit). Replies containing `<UpdateVariable>` (MVU) are always skipped.
 - **One-click Stop:** pressing Stop also cancels background generations that start right after it (e.g. the MVU extra-model variable update), so you no longer need to press Stop twice. There is also a *Stop everything now* button.
 - A hung **swipe** gets a new swipe (older swipes are kept). A hang right after you send a message regenerates the reply without deleting your message.
 - Only watches main chat turns (send / Regenerate / Swipe). Continue, Impersonate and background calls (MVU, memory/summary scripts, etc.) are ignored.
@@ -48,8 +48,8 @@ Extension cho SillyTavern: tự động dừng và tạo lại câu trả lời 
 
 - **Quá N giây chưa ra chữ** (mặc định 200 giây, kẹt ở thinking) → dừng và tạo lại.
 - **Đang viết mà đứng im N giây** (mặc định 90 giây) → dừng và tạo lại. Chỉ tính khi đã bắt đầu ra chữ, nên lượt dài đang chạy đều không bị cắt.
-- **Số lần tạo lại tối đa mỗi lượt** (mặc định 2), quá số đó thì dừng và báo — không lặp vô hạn, không đốt quota.
-- **Câu trả lời rỗng / quá ngắn / bị cụt** sau khi tạo xong (ngắn hơn N ký tự, hoặc thiếu chuỗi bắt buộc như `</content>`) → tạo lại, tối đa N lần. Tin có `<UpdateVariable>` (MVU) luôn được bỏ qua.
+- **Số lần tạo lại tối đa mỗi lượt** (mặc định 50, không giới hạn), quá số đó thì dừng và báo, không lặp vô hạn.
+- **Câu trả lời rỗng / quá ngắn / bị cụt** sau khi tạo xong (ngắn hơn N ký tự, hoặc thiếu chuỗi bắt buộc như `</content>`) → tạo lại, tối đa N lần (mặc định 50, không giới hạn). Tin có `<UpdateVariable>` (MVU) luôn được bỏ qua.
 - **Bấm Dừng một lần là đủ:** bấm Dừng thì các lệnh chạy ngầm bắt đầu ngay sau đó (vd MVU cập nhật biến bằng model ngoài) cũng bị huỷ, không phải bấm Dừng lần hai. Có thêm nút *Dừng tất cả ngay*.
 - Swipe bị treo → tạo swipe mới, giữ swipe cũ. Treo ngay sau khi gửi tin → tạo lại câu trả lời, không xoá tin của bạn.
 - Chỉ theo dõi lượt chính (gửi / Regenerate / Swipe). Bỏ qua Continue, Impersonate và các lệnh chạy ngầm (MVU, script tóm tắt/bộ nhớ…).

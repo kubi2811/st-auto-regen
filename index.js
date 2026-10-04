@@ -17,10 +17,10 @@ const DEFAULTS = Object.freeze({
     enabled: true,
     firstTextTimeout: 200,
     stallTimeout: 90,
-    maxRetries: 2,
+    maxRetries: 50,
     shortEnabled: true,
     minLength: 50,
-    shortMaxRetries: 3,
+    shortMaxRetries: 50,
     requiredText: '',
     stopAll: true,
     language: 'vi', // 'vi' | 'en'
@@ -36,11 +36,11 @@ const STRINGS = {
         firstTextHint: 'Dành cho lúc kẹt ở thinking. Đặt lớn hơn thời gian thinking bình thường dài nhất.',
         stall: 'Tạo lại nếu đang viết mà đứng im (giây)',
         stallHint: 'Chỉ tính khi đã bắt đầu ra chữ, nên lượt dài đang chạy đều sẽ không bị cắt.',
-        retries: 'Số lần tạo lại tối đa mỗi lượt',
+        retries: 'Số lần tạo lại tối đa mỗi lượt (không giới hạn, 0 = tắt)',
         secShort: 'Khi câu trả lời rỗng / quá ngắn / bị cụt',
         shortEnabled: 'Tự tạo lại khi câu trả lời rỗng hoặc quá ngắn',
         minLength: 'Độ dài tối thiểu (ký tự, không tính thinking)',
-        shortRetries: 'Số lần tạo lại tối đa',
+        shortRetries: 'Số lần tạo lại tối đa (không giới hạn, 0 = tắt)',
         required: 'Chuỗi bắt buộc phải có (để trống = không kiểm tra)',
         requiredHint: 'Ví dụ </content> — thiếu chuỗi này coi như câu trả lời bị cụt. Tin có <UpdateVariable> luôn được bỏ qua.',
         secStop: 'Nút Dừng',
@@ -74,11 +74,11 @@ const STRINGS = {
         firstTextHint: 'Covers replies stuck in "thinking". Set above your longest normal thinking time.',
         stall: 'Regenerate if the stream stalls for (seconds)',
         stallHint: 'Only counts while text is already streaming, so long replies are not cut.',
-        retries: 'Max retries per turn',
+        retries: 'Max retries per turn (no limit, 0 = off)',
         secShort: 'When the reply is empty / too short / truncated',
         shortEnabled: 'Regenerate empty or too-short replies',
         minLength: 'Minimum length (characters, excluding thinking)',
-        shortRetries: 'Max retries',
+        shortRetries: 'Max retries (no limit, 0 = off)',
         required: 'Required text (leave empty to skip)',
         requiredHint: 'e.g. </content> — a reply without it is treated as truncated. Replies with <UpdateVariable> are always skipped.',
         secStop: 'Stop button',
@@ -135,6 +135,12 @@ function settings() {
         if (s[k] === undefined) s[k] = v;
     }
     if (s.language !== 'en') s.language = 'vi';
+    // v1.2: retry limits default to 50 and are no longer capped
+    if (!s._v12) {
+        if (s.maxRetries === 2 || s.maxRetries === 10) s.maxRetries = 50;
+        if (s.shortMaxRetries === 3 || s.shortMaxRetries === 10) s.shortMaxRetries = 50;
+        s._v12 = true;
+    }
     return s;
 }
 
@@ -410,7 +416,7 @@ function renderPanel(open = false) {
         <input id="autoregen_stall" type="range" min="15" max="300" step="5" value="${s.stallTimeout}">
         <small class="autoregen-hint">${T('stallHint')}</small>
         <label for="autoregen_retries">${T('retries')}</label>
-        <input id="autoregen_retries" class="text_pole" type="number" min="0" max="10" value="${s.maxRetries}">
+        <input id="autoregen_retries" class="text_pole" type="number" min="0" value="${s.maxRetries}">
 
         <h4>${T('secShort')}</h4>
         <label class="checkbox_label" for="autoregen_short">
@@ -420,10 +426,10 @@ function renderPanel(open = false) {
         <label for="autoregen_minlen">${T('minLength')}</label>
         <input id="autoregen_minlen" class="text_pole" type="number" min="0" max="5000" value="${s.minLength}">
         <label for="autoregen_shortretries">${T('shortRetries')}</label>
-        <input id="autoregen_shortretries" class="text_pole" type="number" min="0" max="10" value="${s.shortMaxRetries}">
+        <input id="autoregen_shortretries" class="text_pole" type="number" min="0" value="${s.shortMaxRetries}">
         <label for="autoregen_required">${T('required')}</label>
         <input id="autoregen_required" class="text_pole" type="text" value="${esc(s.requiredText)}" placeholder="</content>">
-        <small class="autoregen-hint">${T('requiredHint')}</small>
+        <small class="autoregen-hint">${esc(T('requiredHint'))}</small>
 
         <h4>${T('secStop')}</h4>
         <label class="checkbox_label" for="autoregen_stopall">
@@ -457,10 +463,10 @@ function renderPanel(open = false) {
     bindCheck('autoregen_enabled', 'enabled', () => { if (!s.enabled) stopWatch(); });
     bindRange('autoregen_first', 'firstTextTimeout');
     bindRange('autoregen_stall', 'stallTimeout');
-    bindNum('autoregen_retries', 'maxRetries', 0, 10);
+    bindNum('autoregen_retries', 'maxRetries', 0, Number.MAX_SAFE_INTEGER);
     bindCheck('autoregen_short', 'shortEnabled');
     bindNum('autoregen_minlen', 'minLength', 0, 5000);
-    bindNum('autoregen_shortretries', 'shortMaxRetries', 0, 10);
+    bindNum('autoregen_shortretries', 'shortMaxRetries', 0, Number.MAX_SAFE_INTEGER);
     q('autoregen_required').addEventListener('input', e => { s.requiredText = e.target.value; save(); });
     bindCheck('autoregen_stopall', 'stopAll');
     q('autoregen_stopnow').addEventListener('click', stopEverything);
