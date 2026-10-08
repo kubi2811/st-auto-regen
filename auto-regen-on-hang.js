@@ -75,6 +75,10 @@ async function fire(reason) {
 
 function tick() {
   if (!st.active) return;
+  if (!isGenerating()) {
+    stopWatch();
+    return;
+  }
   const now = Date.now();
   if (!st.gotText && now - st.startedAt > FIRST_TEXT_TIMEOUT * 1000) {
     fire(`No text after ${FIRST_TEXT_TIMEOUT}s`);
@@ -100,7 +104,7 @@ eventOn(tavern_events.GENERATION_STARTED, (type, _opts, dryRun) => {
 eventOn(tavern_events.STREAM_TOKEN_RECEIVED, text => {
   if (!st.active) return;
   st.lastChunkAt = Date.now();
-  if (typeof text === 'string' && text.trim().length > 0) st.gotText = true;
+  if (!st.gotText && typeof text === 'string' && text.trim().length > 0) st.gotText = true;
 });
 
 eventOn(tavern_events.GENERATION_ENDED, () => {

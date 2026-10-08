@@ -163,7 +163,7 @@ function stopWatch() {
         clearInterval(st.timer);
         st.timer = null;
     }
-    updateStatus();
+    updateStatus(true);
 }
 
 async function waitIdle(ms = 15000) {
@@ -230,23 +230,29 @@ async function fireHang(reason) {
 
 function tick() {
     if (!st.active) return;
+    if (!isGenerating()) {
+        stopWatch();
+        return;
+    }
     const s = settings();
     const now = Date.now();
     if (!st.gotText && now - st.startedAt > s.firstTextTimeout * 1000) {
         fireHang(T('noText', { n: s.firstTextTimeout }));
     } else if (st.gotText && now - st.lastChunkAt > s.stallTimeout * 1000) {
         fireHang(T('stalled', { n: s.stallTimeout }));
+    } else {
+        updateStatus();
     }
-    updateStatus();
 }
 
 // ---------------- 2) empty / short reply ----------------
 
 function visibleText(mes) {
-    return String(mes || '')
-        .replace(/<thinking[\s\S]*?<\/thinking>/gi, '')
-        .replace(/<think[\s\S]*?<\/think>/gi, '')
-        .replace(/<!--[\s\S]*?-->/g, '')
+    if (!mes) return '';
+    return String(mes)
+        .replace(/<thinking[\s\S]*?(?:<\/thinking>|$)/gi, '')
+        .replace(/<think[\s\S]*?(?:<\/think>|$)/gi, '')
+        .replace(/<!--[\s\S]*?(?:-->|$)/g, '')
         .trim();
 }
 
@@ -355,14 +361,16 @@ function onGenerationStarted(type, _opts, dryRun) {
     st.startedAt = Date.now();
     st.lastChunkAt = Date.now();
     st.gotText = false;
-    st.timer = setInterval(tick, 1000);
+    st.timer = setInterval(tick, 2000);
     log(`watching "${type || 'normal'}" turn`);
 }
 
 function onToken(text) {
     if (!st.active) return;
     st.lastChunkAt = Date.now();
-    if (typeof text === 'string' && text.trim().length > 0) st.gotText = true;
+    if (!st.gotText && typeof text === 'string' && text.trim().length > 0) {
+        st.gotText = true;
+    }
 }
 
 function onEnded() {
@@ -376,9 +384,10 @@ function onEnded() {
 
 // ---------------- UI ----------------
 
-function updateStatus() {
+function updateStatus(force = false) {
     const el = document.getElementById('autoregen_status');
     if (!el) return;
+    if (!force && !el.offsetParent) return;
     el.textContent = st.active
         ? T('watching', { s: Math.floor((Date.now() - st.startedAt) / 1000) })
         : T('idle');
@@ -494,6 +503,8 @@ function renderPanel(open = false) {
     eventSource.on(eventTypes.STREAM_TOKEN_RECEIVED, onToken);
     eventSource.on(eventTypes.GENERATION_ENDED, onEnded);
     eventSource.on(eventTypes.GENERATION_STOPPED, () => stopWatch());
+    if (eventTypes.GENERATION_ERROR) eventSource.on(eventTypes.GENERATION_ERROR, () => stopWatch());
+    if (eventTypes.GENERATION_AFTER_COMMANDS) eventSource.on(eventTypes.GENERATION_AFTER_COMMANDS, () => { if (!isGenerating()) stopWatch(); });
     eventSource.on(eventTypes.CHAT_CHANGED, () => { stopWatch(); st.hangRetries = 0; st.shortRetries = 0; });
     // Tavern Helper generations (MVU extra model etc.) emit this on the same event bus
     eventSource.on('js_generation_started', () => onAnyGenerationStart('Tavern Helper generation'));
