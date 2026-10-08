@@ -75,7 +75,7 @@ async function fire(reason) {
 
 function tick() {
   if (!st.active) return;
-  if (!isGenerating()) {
+  if (!isGenerating() && Date.now() - st.startedAt > 15000) {
     stopWatch();
     return;
   }
